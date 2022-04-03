@@ -4,7 +4,11 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
+import edu.wpi.first.wpilibj.motorcontrol.Talon;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
@@ -19,6 +23,19 @@ public class Robot extends TimedRobot {
 
   private RobotContainer m_robotContainer;
 
+  // Correlates Talon(port) to its object
+  public final Talon m_leftMotorFront = new Talon(3);
+  public final Talon m_leftMotorBack = new Talon(4);
+  public final Talon m_rightMotorFront = new Talon(1);
+  public final Talon m_rightMotorBack = new Talon(2);
+
+  // Combines the front & back motor of each side into an object
+  MotorControllerGroup rightSide = new MotorControllerGroup(m_rightMotorFront, m_rightMotorBack);
+  MotorControllerGroup leftSide = new MotorControllerGroup(m_leftMotorFront, m_leftMotorBack);
+
+  private final DifferentialDrive drive = new DifferentialDrive(m_leftMotorFront, m_rightMotorFront);
+  private final Joystick PS4Controller = new Joystick(0);
+
   /**
    * This function is run when the robot is first started up and should be used for any
    * initialization code.
@@ -28,6 +45,12 @@ public class Robot extends TimedRobot {
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
     // autonomous chooser on the dashboard.
     m_robotContainer = new RobotContainer();
+
+    // We need to invert one side of the drivetrain so that positive voltages
+    // result in both sides moving forward. Depending on how your robot's
+    // gearbox is constructed, you might have to invert the left side instead.
+    m_rightMotorFront.setInverted(true);
+    m_rightMotorBack.setInverted(true);
   }
 
   /**
@@ -81,7 +104,12 @@ public class Robot extends TimedRobot {
 
   /** This function is called periodically during operator control. */
   @Override
-  public void teleopPeriodic() {}
+  public void teleopPeriodic() {
+    // Drive with arcade drive.
+    // That means that the Y axis drives forward
+    // and backward, and the X turns left and right.
+    drive.arcadeDrive(-PS4Controller.getY(), PS4Controller.getX());
+  }
 
   @Override
   public void testInit() {
